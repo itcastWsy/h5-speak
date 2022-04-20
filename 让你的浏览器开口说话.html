@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+  <!-- <html lang="zh-CN"> -->
+  <!-- <html lang="zh-HK"> -->
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0,maximum-scale=1,minimum-scale=1,user-scalable=no"
+    />
+    <title>让你的浏览器开口说话</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      button {
+        display: block;
+        margin: 0 auto;
+        width: 200px;
+        height: 50px;
+        font-size: 30px;
+        background-color: powderblue;
+        border-radius: 10px;
+        border: none;
+        cursor: pointer;
+      }
+
+      .tool {
+        width: 1000px;
+        margin: 20px auto;
+        font-size: 16px;
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        height: 100px;
+      }
+      input {
+        display: block;
+      }
+      .word {
+        position: fixed;
+        width: 85%;
+        left: 50%;
+        bottom: 10%;
+        transform: translateX(-50%);
+        background-color: #000;
+        color: #fff;
+        line-height: 1.5;
+        font-size: 25px;
+        padding: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="tool">
+      <div class="item">
+        <span>请输入说话的内容</span>
+        <input type="text" value="执翻剂" class="text" style="height: 30px" />
+      </div>
+      <div class="item">
+        <span>音调 0-2</span>
+        <div>
+          <input
+            value="1"
+            type="range"
+            class="pitch"
+            min="0"
+            max="2"
+            step="1"
+          />
+          <b>1</b>
+        </div>
+      </div>
+      <div class="item">
+        <span>语速1-10</span>
+        <div>
+          <input
+            value="1"
+            type="range"
+            class="rate"
+            min="0.1"
+            max="10"
+            step="0.2"
+          />
+          <b>1</b>
+        </div>
+      </div>
+      <div class="item">
+        <span>音量 0-1</span>
+        <div>
+          <input
+            value="1"
+            type="range"
+            class="volume"
+            min="0"
+            max="1"
+            step="0.1"
+          />
+          <b>1</b>
+        </div>
+      </div>
+      <div class="item">
+        <span>语言</span>
+        <select class="voice"></select>
+      </div>
+    </div>
+    <button>播放</button>
+    
+    <script>
+      window.onload = function () {
+        const button = document.querySelector('button');
+        const textDom = document.querySelector('.text');
+        const pitchDom = document.querySelector('.pitch');
+        const rateDom = document.querySelector('.rate');
+        const voiceDom = document.querySelector('.voice');
+        const volumeDom = document.querySelector('.volume');
+        let voices;
+
+        pitchDom.addEventListener('input', setValue);
+        rateDom.addEventListener('input', setValue);
+        volumeDom.addEventListener('input', setValue);
+
+        function setValue(event) {
+          if (event.target.nextElementSibling.nodeName === 'B') {
+            event.target.nextElementSibling.innerText = event.target.value;
+          }
+        }
+
+        speechSynthesis.onvoiceschanged = function (e) {
+          voices = speechSynthesis.getVoices();
+          voiceDom.innerHTML = voices
+            .map(
+              (v, i) => `<option value="${i}">
+            ${v.name.replace(/(Google)|(Microsoft)/, '')}
+            </option>`
+            )
+            .join('');
+        };
+
+        button.addEventListener('click', function () {
+          let utterThis = new SpeechSynthesisUtterance();
+          const text = textDom.value;
+          const pitch = pitchDom.value;
+          const rate = rateDom.value;
+          const volume = volumeDom.value;
+          const voice = voiceDom.value;
+
+          utterThis.text = text;// 设置要约定的文本
+          utterThis.pitch = pitch;// 设置音调
+          utterThis.rate = rate; // 设置语速
+          utterThis.voice = voices[voice]; // 设置语言 
+          utterThis.volume = volume;// 设置音量
+          speechSynthesis.speak(utterThis); // 开始朗读
+
+          const word = document.createElement('div');
+          word.innerText = text;
+          word.classList.add('word');
+          document.body.appendChild(word);
+          utterThis.onend = function () {
+            setTimeout(() => {
+              word.remove();
+            }, 1000);
+          };
+        });
+      };
+    </script>
+  </body>
+</html>
